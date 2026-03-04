@@ -1,0 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap');
+
+/* Custom Font Classes */
+.font-heading {
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Emergency Mode Pulse Animation */
+@keyframes emergency-pulse {
+  0%, 100% {
+    background-color: #09090b;
+  }
+  50% {
+    background-color: #1a0505;
+  }
+}
+
+.emergency-pulse {
+  animation: emergency-pulse 2s ease-in-out infinite;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #18181b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}
+
+/* LED Glow Animation */
+@keyframes led-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px currentColor;
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 20px currentColor;
+    opacity: 0.7;
+  }
+}
+
+/* Subtle Noise Overlay */
+.overlay-noise-subtle::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  z-index: 9999;
+}
+
+/* Scanlines Effect */
+.overlay-scanlines::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.03),
+    rgba(0, 0, 0, 0.03) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* Text Shadow Glow */
+.text-shadow-glow {
+  text-shadow: 0 0 10px currentColor;
+}
+
+/* Bento Grid Hover Effects */
+.bento-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.bento-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+.bento-card:hover::before {
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+/* Corner Brackets on Hover */
+.corner-brackets {
+  position: relative;
+}
+
+.corner-brackets::before,
+.corner-brackets::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.corner-brackets::before {
+  top: 4px;
+  left: 4px;
+  border-top: 2px solid #f59e0b;
+  border-left: 2px solid #f59e0b;
+}
+
+.corner-brackets::after {
+  bottom: 4px;
+  right: 4px;
+  border-bottom: 2px solid #f59e0b;
+  border-right: 2px solid #f59e0b;
+}
+
+.corner-brackets:hover::before,
+.corner-brackets:hover::after {
+  opacity: 1;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .font-mono {
+    font-size: 0.9em;
+  }
+}
+
+/* Animation for connection status */
+@keyframes connection-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.connection-active {
+  animation: connection-pulse 2s ease-in-out infinite;
+}
+
+/* Fan spin animation speed */
+@keyframes fan-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: fan-spin 3s linear infinite;
+}
+
+/* Chart tooltip animation */
+.recharts-tooltip-wrapper {
+  transition: transform 0.1s ease-out;
+}
+
+/* Input focus styles */
+input[type="number"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
+}
+
+/* Remove number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}

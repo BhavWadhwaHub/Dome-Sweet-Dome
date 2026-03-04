@@ -1,0 +1,133 @@
+{
+  "project_name": "Dome City Temperature Control System",
+  "persona": "E1: The Anti-AI Designer",
+  "design_philosophy": {
+    "core_principle": "Tactical Minimalism with Industrial Soul",
+    "vibe": "Control Room, HUD, High-Stakes, Survival",
+    "emotional_tone": "Precise, Alert, Functional, Resilient",
+    "archetype": "ARCHETYPE 4: SWISS & HIGH-CONTRAST (Modified for Dark Industrial)"
+  },
+  "typography": {
+    "headings": {
+      "font_family": "Barlow Condensed, sans-serif",
+      "google_font_url": "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&display=swap",
+      "usage": "Main titles, Section headers, Alert messages",
+      "styles": "uppercase tracking-widest font-bold"
+    },
+    "data": {
+      "font_family": "JetBrains Mono, monospace",
+      "google_font_url": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap",
+      "usage": "Temperature values, timestamps, metrics, logs",
+      "styles": "tabular-nums tracking-tight"
+    },
+    "body": {
+      "font_family": "Inter, sans-serif",
+      "usage": "Labels, descriptions, button text",
+      "styles": "text-zinc-400 font-medium"
+    }
+  },
+  "colors": {
+    "background": {
+      "primary": "#09090b",
+      "secondary": "#18181b",
+      "overlay": "rgba(9, 9, 11, 0.8)"
+    },
+    "text": {
+      "primary": "#fafafa",
+      "secondary": "#a1a1aa",
+      "muted": "#52525b"
+    },
+    "accent": {
+      "primary": "#f59e0b",
+      "secondary": "#fbbf24",
+      "hover": "#d97706"
+    },
+    "status": {
+      "emergency": "#dc2626",
+      "comfort": "#10b981",
+      "cold": "#0ea5e9",
+      "idle": "#71717a",
+      "warning": "#f59e0b"
+    },
+    "border": {
+      "default": "#27272a",
+      "active": "#3f3f46",
+      "highlight": "#52525b"
+    }
+  },
+  "layout_strategy": {
+    "grid_system": "Bento Grid Mode B (High Density)",
+    "container_style": "border-collapse-grid",
+    "spacing": "gap-4 md:gap-6",
+    "padding": "p-4 md:p-8",
+    "max_width": "max-w-[1600px]",
+    "alignment": "Strict alignment to grid lines"
+  },
+  "components": {
+    "LedIndicator": {
+      "description": "Visual representation of physical LEDs",
+      "styles": "rounded-full shadow-[0_0_10px_currentColor] transition-all duration-300",
+      "variants": {
+        "on": "opacity-100 scale-110",
+        "off": "opacity-20 scale-100 grayscale"
+      }
+    },
+    "MetricCard": {
+      "description": "Container for single data point",
+      "styles": "bg-zinc-900/50 border border-zinc-800 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-zinc-700 transition-colors",
+      "enhancements": "Add corner brackets (SVG) on hover or active state"
+    },
+    "StatusBadge": {
+      "description": "Live status indicator pill",
+      "styles": "inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-zinc-900 border border-zinc-800"
+    },
+    "SystemLog": {
+      "description": "Scrolling console log",
+      "styles": "font-mono text-xs text-green-500/80 bg-black/80 p-4 border border-zinc-800 h-48 overflow-y-auto scrollbar-hide"
+    },
+    "TemperatureGauge": {
+        "description": "Radial or linear gauge for temperature",
+        "styles": "relative flex items-center justify-center"
+    }
+  },
+  "visual_enhancements": {
+    "scanlines": "overlay-scanlines",
+    "noise": "overlay-noise-subtle",
+    "glow": "text-shadow-glow",
+    "borders": "1px solid #27272a (zinc-800) with occasional 2px highlight on active sections"
+  },
+  "motion": {
+    "transitions": "transition-all duration-200 ease-out",
+    "entrance": "animate-in fade-in slide-in-from-bottom-4 duration-500",
+    "pulse": "animate-pulse"
+  },
+  "accessibility": {
+    "contrast": "Ensure all text is at least 4.5:1 against background. Use lighter zincs for text.",
+    "aria_labels": "All LED indicators and charts must have aria-labels describing current state.",
+    "reduced_motion": "Disable pulse animations if prefers-reduced-motion is true."
+  },
+  "image_assets": {
+      "background_texture": "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop"
+  },
+  "instructions_to_main_agent": [
+    "1. Setup fonts in index.html first (Barlow Condensed, JetBrains Mono).",
+    "2. Implement the 'Bento Grid' layout for the main dashboard.",
+    "3. Use 'recharts' for the temperature history chart. Customize the tooltip to match the dark theme.",
+    "4. Create a 'useArduino' hook to handle WebSocket connection and state management.",
+    "5. Ensure the 'Emergency' mode triggers a visual alarm state (e.g., red borders, pulsing background).",
+    "6. Use Tailwind's 'animate-pulse' for the LED indicators when they are blinking.",
+    "7. Do NOT use standard Shadcn cards. Use custom 'div' containers with specific border styles to create the 'Grid Border' look.",
+    "8. Implement a 'System Log' that auto-scrolls to the newest entry.",
+    "9. Add a 'Connection Status' indicator in the header (Connected/Disconnected/Error).",
+    "10. Ensure all data updates in real-time without page refresh.",
+    "11. Strictly follow the color palette. Do not introduce random colors.",
+    "12. Use 'sonner' for toast notifications (e.g., 'Connection Established', 'Emergency Mode Activated')."
+  ],
+  "universal_guidelines": [
+    "Avoid generic 'dashboard' looks. Aim for 'Sci-Fi HUD' or 'Industrial Control Panel'.",
+    "Use uppercase for labels and headers to enhance the technical feel.",
+    "Group related metrics (e.g., Temperature & Fan Status) logically.",
+    "Ensure the dashboard is responsive (mobile-friendly stack, desktop grid).",
+    "Use 'data-testid' for all interactive elements."
+  ]
+}

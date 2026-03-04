@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dome City Controller</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #09090b; color: #fafafa; }
+        .font-heading { font-family: 'Barlow Condensed', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-pulse { animation: pulse 1s ease-in-out infinite; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        .led-glow { box-shadow: 0 0 15px currentColor; }
+        @keyframes emergency-pulse { 0%, 100% { background-color: #09090b; } 50% { background-color: #1a0505; } }
+        .emergency-bg { animation: emergency-pulse 2s ease-in-out infinite; }
+    </style>
+</head>
+<body class="min-h-screen" id="app-body">
+    <!-- Header -->
+    <header class="border-b border-zinc-800 bg-zinc-900/50 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold uppercase tracking-widest text-amber-500 font-heading">Dome City Controller</h1>
+                <p class="text-xs text-zinc-500 uppercase tracking-wider mt-1">Temperature Control System</p>
+            </div>
+            <div class="flex items-center gap-3" id="status-badges">
+                <div id="mode-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-700">
+                    <span class="text-xs font-bold uppercase tracking-wider text-zinc-300">IDLE</span>
+                </div>
+                <div id="connection-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-600/20 text-red-400">
+                    <i data-lucide="wifi-off" class="w-4 h-4"></i>
+                    <span class="text-xs font-bold uppercase tracking-wider">Connecting...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Error Banner -->
+    <div id="error-banner" class="hidden max-w-7xl mx-auto px-4 mt-4">
+        <div class="p-4 bg-red-900/30 border border-red-600 rounded flex items-center gap-3">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
+            <span class="text-red-300 font-medium">SENSOR ERROR - All outputs disabled for safety</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <!-- Temperature Display -->
+            <div class="lg:col-span-2 lg:row-span-2 bg-zinc-900/50 border border-zinc-800 p-6">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <span class="text-xs uppercase tracking-wider text-zinc-500 font-medium flex items-center gap-2">
+                            <i data-lucide="activity" class="w-3 h-3"></i> Current Temperature
+                        </span>
+                        <div class="mt-4 font-mono text-7xl font-bold tracking-tighter">
+                            <span id="current-temp">0.0</span><span class="text-3xl text-zinc-500">°C</span>
+                        </div>
+                    </div>
+                    <i data-lucide="thermometer" id="temp-icon" class="w-12 h-12 text-zinc-600"></i>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mt-6">
+                    <div>
+                        <span class="text-xs uppercase tracking-wider text-zinc-500 font-medium flex items-center gap-2">
+                            <i data-lucide="target" class="w-3 h-3"></i> Target
+                        </span>
+                        <div class="font-mono text-2xl mt-1"><span id="target-temp">23.0</span>°C</div>
+                        <div id="stable-indicator" class="hidden mt-1 text-xs font-bold text-green-400 uppercase tracking-wider animate-pulse">
+                            ● STABLE
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-xs uppercase tracking-wider text-zinc-500 font-medium flex items-center gap-2">
+                            <i data-lucide="droplets" class="w-3 h-3"></i> Humidity
+                        </span>
+                        <div class="font-mono text-2xl mt-1"><span id="humidity">0.0</span>%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LED Status -->
+            <div class="lg:col-span-2 bg-zinc-900/50 border border-zinc-800 p-6">
+                <span class="text-xs uppercase tracking-wider text-zinc-500 font-medium">LED Status</span>
+                <div class="flex justify-around mt-6">
+                    <div class="flex flex-col items-center gap-2">
+                        <div id="led-red" class="w-8 h-8 rounded-full border-2 border-red-600 bg-zinc-800/50 opacity-30"></div>
+                        <span class="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Emergency</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <div id="led-yellow" class="w-8 h-8 rounded-full border-2 border-yellow-500 bg-zinc-800/50 opacity-30"></div>
+                        <span class="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Heating</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <div id="led-green" class="w-8 h-8 rounded-full border-2 border-emerald-600 bg-zinc-800/50 opacity-30"></div>
+                        <span class="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Target OK</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <div id="led-blue" class="w-8 h-8 rounded-full border-2 border-sky-600 bg-zinc-800/50 opacity-30"></div>
+                        <span class="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Cooling</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fan Status -->
+            <div class="bg-zinc-900/50 border border-zinc-800 p-6">
+                <span class="text-xs uppercase tracking-wider text-zinc-500 font-medium flex items-center gap-2">
+                    <i data-lucide="fan" class="w-3 h-3"></i> Fan Status
+                </span>
+                <div id="fan-status" class="mt-4 flex items-center gap-3 text-zinc-600">
+                    <i data-lucide="fan" class="w-8 h-8" id="fan-icon"></i>
+                    <span class="font-mono text-xl font-bold uppercase">OFF</span>
+                </div>
+                <button onclick="toggleFan()" id="fan-toggle-btn" class="mt-3 w-full px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold uppercase text-xs tracking-wider rounded transition-colors">
+                    Toggle Fan
+                </button>
+            </div>
+
+            <!-- Heater Status -->
+            <div class="bg-zinc-900/50 border border-zinc-800 p-6">
+                <span class="text-xs uppercase tracking-wider text-zinc-500 font-medium flex items-center gap-2">
+                    <i data-lucide="flame" class="w-3 h-3"></i> Heater Status
+                </span>
+                <div id="heater-status" class="mt-4 flex items-center gap-3 text-zinc-600">
+                    <i data-lucide="flame" class="w-8 h-8" id="heater-icon"></i>
+                    <span class="font-mono text-xl font-bold uppercase">OFF</span>
+                </div>
+                <button onclick="toggleHeater()" id="heater-toggle-btn" class="mt-3 w-full px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold uppercase text-xs tracking-wider rounded transition-colors">
+                    Toggle Heater
+                </button>
+            </div>
+
+            <!-- Controls -->
+            <div class="lg:col-span-2 bg-zinc-900/50 border border-zinc-800 p-6">
+                <span class="text-xs uppercase tracking-wider text-zinc-500 font-medium">System Controls</span>
+                <div class="mt-4 grid grid-cols-3 gap-3">
+                    <button onclick="sendCommand('EMERGENCY')" class="px-4 py-3 bg-red-600 hover:bg-red-500 text-white font-bold uppercase text-sm tracking-wider rounded transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4"></i> Emergency
+                    </button>
+                    <button onclick="sendCommand('COMFORT')" class="px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold uppercase text-sm tracking-wider rounded transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="thermometer" class="w-4 h-4"></i> Comfort
+                    </button>
+                    <button onclick="sendCommand('IDLE')" class="px-4 py-3 bg-zinc-700 hover:bg-zinc-600 text-white font-bold uppercase text-sm tracking-wider rounded transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="power" class="w-4 h-4"></i> Stop
+                    </button>
+                </div>
+                <div class="mt-4 flex gap-2">
+                    <input type="number" id="target-input" min="18" max="30" step="0.5" placeholder="Target (18-30°C)" 
+                        class="flex-1 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded text-zinc-100 font-mono placeholder:text-zinc-600 focus:outline-none focus:border-amber-500">
+                    <button onclick="setTarget()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold uppercase text-sm tracking-wider rounded transition-colors">Set</button>
+                </div>
+                <p id="waiting-msg" class="hidden mt-2 text-xs text-amber-400">Waiting for temperature input (18-30°C)</p>
+            </div>
+
+            <!-- Temperature Chart -->
+            <div class="lg:col-span-2 bg-zinc-900/50 border border-zinc-800 p-6">
+                <span class="text-xs uppercase tracking-wider text-zinc-500 font-medium">Temperature History</span>
+                <div class="mt-4 h-48 relative">
+                    <canvas id="temp-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Humidity Chart -->
+            <div class="lg:col-span-2 bg-zinc-900/50 border border-zinc-800 p-6">
+                <span class="text-xs uppercase tracking-wider text-zinc-500 font-medium">Humidity History</span>
+                <div class="mt-4 h-48 relative">
+                    <canvas id="humidity-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- System Log -->
+            <div class="lg:col-span-4 bg-zinc-900/50 border border-zinc-800 p-6">
+                <span class="text-xs uppercase tracking-wider text-zinc-500 font-medium mb-4 block">System Log</span>
+                <div id="system-log" class="font-mono text-xs bg-black/80 p-4 border border-zinc-800 h-48 overflow-y-auto">
+                    <p class="text-zinc-600">Connecting to Arduino...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-zinc-800 py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 flex justify-between items-center text-xs text-zinc-600">
+            <span>Dome City Temperature Control v1.0.0</span>
+            <span id="last-update">Last Update: Never</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // State
+        let ws = null;
+        let tempChart = null;
+        let humidityChart = null;
+        let data = { temp: 0, humidity: 0, target: 23, mode: 'IDLE', fan: false, heater: false, stable: false, leds: {red:0,yellow:0,green:0,blue:0}, error: false, waiting: false, connected: false };
+        let history = [];
+        let events = [];
+
+        // Initialize Charts
+        function initCharts() {
+            // Temperature Chart
+            const tempCtx = document.getElementById('temp-chart').getContext('2d');
+            tempChart = new Chart(tempCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Temperature (°C)', data: [], borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderWidth: 2, fill: true, tension: 0.4 },
+                        { label: 'Target (°C)', data: [], borderColor: '#10b981', borderWidth: 2, borderDash: [5, 5], fill: false }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { color: '#27272a' }, ticks: { color: '#71717a', maxTicksLimit: 8 } },
+                        y: { grid: { color: '#27272a' }, ticks: { color: '#71717a' }, title: { display: true, text: '°C', color: '#71717a' } }
+                    },
+                    plugins: { legend: { labels: { color: '#a1a1aa', boxWidth: 12 } } }
+                }
+            });
+
+            // Humidity Chart
+            const humCtx = document.getElementById('humidity-chart').getContext('2d');
+            humidityChart = new Chart(humCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Humidity (%)', data: [], borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.1)', borderWidth: 2, fill: true, tension: 0.4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { color: '#27272a' }, ticks: { color: '#71717a', maxTicksLimit: 8 } },
+                        y: { grid: { color: '#27272a' }, ticks: { color: '#71717a' }, min: 0, max: 100, title: { display: true, text: '%', color: '#71717a' } }
+                    },
+                    plugins: { legend: { labels: { color: '#a1a1aa', boxWidth: 12 } } }
+                }
+            });
+        }
+
+        // Update UI
+        function updateUI() {
+            // Temperature
+            document.getElementById('current-temp').textContent = data.temp.toFixed(1);
+            document.getElementById('target-temp').textContent = data.target.toFixed(1);
+            document.getElementById('humidity').textContent = data.humidity.toFixed(1);
+
+            // Temperature icon color
+            const tempIcon = document.getElementById('temp-icon');
+            tempIcon.className = `w-12 h-12 ${data.heater ? 'text-amber-500' : data.fan ? 'text-sky-500' : 'text-zinc-600'}`;
+
+            // Mode badge
+            const modeBadge = document.getElementById('mode-badge');
+            const modeColors = { IDLE: 'bg-zinc-700 text-zinc-300', EMERGENCY: 'bg-red-600 text-red-100', COMFORT: 'bg-emerald-600 text-emerald-100', MANUAL: 'bg-purple-600 text-purple-100' };
+            modeBadge.className = `flex items-center gap-2 px-3 py-1.5 rounded-full ${modeColors[data.mode] || modeColors.IDLE}`;
+            
+            // Show STABLE when target reached in Comfort/Emergency mode
+            let modeText = data.mode;
+            if (data.stable && (data.mode === 'COMFORT' || data.mode === 'EMERGENCY')) {
+                modeText = data.mode + ' (STABLE)';
+                modeBadge.className = `flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-600 text-green-100`;
+            }
+            modeBadge.querySelector('span').textContent = modeText;
+
+            // Connection badge
+            const connBadge = document.getElementById('connection-badge');
+            if (data.connected) {
+                connBadge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-600/20 text-emerald-400';
+                connBadge.innerHTML = '<i data-lucide="wifi" class="w-4 h-4"></i><span class="text-xs font-bold uppercase tracking-wider">Arduino Online</span>';
+            } else {
+                connBadge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-600/20 text-amber-400';
+                connBadge.innerHTML = '<i data-lucide="wifi" class="w-4 h-4"></i><span class="text-xs font-bold uppercase tracking-wider">Waiting for Arduino</span>';
+            }
+            lucide.createIcons();
+
+            // LEDs
+            updateLED('led-red', data.leds.red, 'bg-red-500', 'shadow-red-500/50');
+            updateLED('led-yellow', data.leds.yellow, 'bg-yellow-400', 'shadow-yellow-400/50');
+            updateLED('led-green', data.leds.green, 'bg-emerald-500', 'shadow-emerald-500/50');
+            updateLED('led-blue', data.leds.blue, 'bg-sky-500', 'shadow-sky-500/50');
+
+            // Fan
+            const fanStatus = document.getElementById('fan-status');
+            const fanIcon = document.getElementById('fan-icon');
+            fanStatus.className = `mt-4 flex items-center gap-3 ${data.fan ? 'text-sky-400' : 'text-zinc-600'}`;
+            fanIcon.className = `w-8 h-8 ${data.fan ? 'animate-spin' : ''}`;
+            fanStatus.querySelector('span').textContent = data.fan ? 'ON' : 'OFF';
+
+            // Heater
+            const heaterStatus = document.getElementById('heater-status');
+            const heaterIcon = document.getElementById('heater-icon');
+            heaterStatus.className = `mt-4 flex items-center gap-3 ${data.heater ? 'text-amber-400' : 'text-zinc-600'}`;
+            heaterIcon.className = `w-8 h-8 ${data.heater ? 'animate-pulse' : ''}`;
+            heaterStatus.querySelector('span').textContent = data.heater ? 'ON' : 'OFF';
+
+            // Error banner
+            document.getElementById('error-banner').classList.toggle('hidden', !data.error);
+
+            // Waiting message
+            document.getElementById('waiting-msg').classList.toggle('hidden', !data.waiting);
+
+            // Stable indicator
+            document.getElementById('stable-indicator').classList.toggle('hidden', !data.stable);
+
+            // Emergency background
+            document.getElementById('app-body').classList.toggle('emergency-bg', data.mode === 'EMERGENCY');
+
+            // Last update
+            if (data.last_update) {
+                document.getElementById('last-update').textContent = `Last Update: ${new Date(data.last_update).toLocaleTimeString()}`;
+            }
+
+            lucide.createIcons();
+        }
+
+        function updateLED(id, state, bgColor, shadowColor) {
+            const led = document.getElementById(id);
+            const isOn = state === 1 || state === 2;
+            const isBlink = state === 2;
+            
+            if (isOn) {
+                led.className = `w-8 h-8 rounded-full border-2 ${bgColor} led-glow ${isBlink ? 'animate-pulse' : ''} ${led.className.split(' ').filter(c => c.startsWith('border-')).join(' ')}`;
+                led.style.opacity = '1';
+            } else {
+                led.className = `w-8 h-8 rounded-full border-2 bg-zinc-800/50 opacity-30 ${led.className.split(' ').filter(c => c.startsWith('border-')).join(' ')}`;
+                led.style.opacity = '0.3';
+            }
+        }
+
+        function updateCharts() {
+            if (!tempChart || !humidityChart || history.length === 0) return;
+            
+            const labels = history.map(h => new Date(h.timestamp).toLocaleTimeString());
+            
+            // Temperature chart
+            tempChart.data.labels = labels;
+            tempChart.data.datasets[0].data = history.map(h => h.temp);
+            tempChart.data.datasets[1].data = history.map(h => h.target);
+            tempChart.update('none');
+            
+            // Humidity chart
+            humidityChart.data.labels = labels;
+            humidityChart.data.datasets[0].data = history.map(h => h.humidity);
+            humidityChart.update('none');
+        }
+
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('system-log');
+            const colors = { info: 'text-zinc-400', success: 'text-emerald-400', error: 'text-red-400', warning: 'text-amber-400' };
+            const time = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = `mb-1 ${colors[type] || colors.info}`;
+            div.innerHTML = `<span class="text-zinc-600">${time}</span> ${message}`;
+            log.insertBefore(div, log.firstChild);
+            if (log.children.length > 100) log.removeChild(log.lastChild);
+        }
+
+        // WebSocket Connection
+        function connect() {
+            ws = new WebSocket(`ws://${window.location.host}/api/ws`);
+            
+            ws.onopen = () => {
+                addLog('[CONNECTED] WebSocket established', 'success');
+            };
+            
+            ws.onmessage = (e) => {
+                try {
+                    const msg = JSON.parse(e.data);
+                    
+                    if (msg.type === 'init') {
+                        Object.assign(data, msg);
+                        if (msg.history) history = msg.history;
+                        updateUI();
+                        updateCharts();
+                    } else if (msg.type === 'data') {
+                        Object.assign(data, msg);
+                        history.push({ timestamp: msg.last_update, temp: msg.temp, target: msg.target, humidity: msg.humidity });
+                        if (history.length > 50) history.shift();
+                        updateUI();
+                        updateCharts();
+                    } else if (msg.event) {
+                        const types = { MODE_CHANGE: msg.mode === 'EMERGENCY' ? 'error' : 'success', CONNECTION: msg.status === 'connected' ? 'success' : 'warning' };
+                        addLog(`[${msg.event}] ${msg.message || ''}`, types[msg.event] || 'info');
+                    }
+                } catch (err) {
+                    console.error('Parse error:', err);
+                }
+            };
+            
+            ws.onclose = () => {
+                addLog('[DISCONNECTED] Reconnecting...', 'warning');
+                setTimeout(connect, 3000);
+            };
+            
+            ws.onerror = () => ws.close();
+        }
+
+        function sendCommand(cmd) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ command: cmd }));
+                addLog(`[COMMAND] ${cmd}`, 'info');
+            }
+        }
+
+        function setTarget() {
+            const input = document.getElementById('target-input');
+            const val = parseFloat(input.value);
+            if (val >= 18 && val <= 30) {
+                sendCommand(String(val));
+                input.value = '';
+            } else {
+                addLog('[ERROR] Temperature must be 18-30°C', 'error');
+            }
+        }
+
+        function toggleFan() {
+            sendCommand('TOGGLE_FAN');
+        }
+
+        function toggleHeater() {
+            sendCommand('TOGGLE_HEATER');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            connect();
+            addLog('[SYSTEM] Dashboard initialized', 'info');
+        });
+    </script>
+</body>
+</html>
