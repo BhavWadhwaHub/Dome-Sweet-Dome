@@ -217,6 +217,4 @@ LED State Values:
 - Check sensor wiring
 - Ensure proper pull-up resistor on data line
 
-## License
 
-MIT License - Built for Dome City Project
